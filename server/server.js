@@ -43,7 +43,6 @@ io.on('connection', (socket) => {
   socket.emit('init', { ops, user: users[socket.id], users: Object.values(users) });
   io.emit('user.join', { user: users[socket.id] });
 
-  // Handle strokes
   socket.on('stroke.begin', (op) => {
     ops.push({ ...op, points: [] });
     io.emit('stroke.begin', op);
@@ -79,4 +78,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = 3000;
-server.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
