@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 let ops = [];
+let redoStack = [];
 let users = {};
 
 function load() {
@@ -45,6 +46,7 @@ io.on('connection', (socket) => {
 
   socket.on('stroke.begin', (op) => {
     ops.push({ ...op, points: [] });
+    redoStack = [];
     io.emit('stroke.begin', op);
   });
 
@@ -59,16 +61,24 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('stroke.end', op);
   });
 
-     socket.on('cursor', (data) => {
+  socket.on('cursor', (data) => {
     socket.broadcast.emit('cursor', data);
   });
 
   socket.on('undo', () => {
     const last = ops.pop();
-    if (last) io.emit('op.remove', { opId: last.opId });
+    if (!last) return;
+    redoStack.push(last);
+    io.emit('op.remove', { opId: last.opId });
+    persist();
   });
 
   socket.on('redo', () => {
+    const op = redoStack.pop();
+    if (!op) return;
+    ops.push(op);
+    io.emit('op.restore', { op });
+    persist();
   });
 
   socket.on('disconnect', () => {

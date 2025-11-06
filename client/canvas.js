@@ -5,6 +5,7 @@
   const colorInput = document.getElementById('color');
   const widthInput = document.getElementById('width');
   const undoBtn = document.getElementById('undo');
+  const redoBtn = document.getElementById('redo');
   const usersDiv = document.getElementById('users');
 
   let drawing = false;
@@ -45,7 +46,7 @@
     for (const op of ops) drawPoints(op);
   }
 
-  canvas.addEventListener('mousedown', (e) => {
+  canvas.addEventListener('mousedown', () => {
     drawing = true;
     const opId = Math.random().toString(36).slice(2);
     const op = {
@@ -80,8 +81,14 @@
   });
 
   undoBtn.addEventListener('click', () => {
-    window.socket.emit('undo');
-  });
+  console.log("Undo clicked ");
+  window.socket.emit('undo');
+});
+
+redoBtn.addEventListener('click', () => {
+  console.log("Redo clicked ");
+  window.socket.emit('redo');
+});
 
   window.socket.on('init', (data) => {
     ops = data.ops || [];
@@ -98,8 +105,14 @@
       drawPoints(op);
     }
   });
+
   window.socket.on('op.remove', ({ opId }) => {
     ops = ops.filter(o => o.opId !== opId);
+    redraw();
+  });
+
+  window.socket.on('op.restore', ({ op }) => {
+    ops.push(op);
     redraw();
   });
 
