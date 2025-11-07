@@ -39,6 +39,7 @@
 
   function drawPoints(op) {
     if (!op.points || op.points.length < 2) return;
+
     ctx.lineWidth = op.width;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -47,12 +48,21 @@
       op.tool === 'eraser' ? 'destination-out' : 'source-over';
 
     ctx.beginPath();
-    const start = toPx(op.points[0]);
-    ctx.moveTo(start.x, start.y);
-    for (let i = 1; i < op.points.length; i++) {
-      const { x, y } = toPx(op.points[i]);
-      ctx.lineTo(x, y);
+
+    let p0 = toPx(op.points[0]);
+    let p1 = toPx(op.points[1]);
+
+    ctx.moveTo(p0.x, p0.y);
+
+    for (let i = 1; i < op.points.length - 1; i++) {
+      const p2 = toPx(op.points[i + 1]);
+      const cx = (p1.x + p2.x) / 2;
+      const cy = (p1.y + p2.y) / 2;
+      ctx.quadraticCurveTo(p1.x, p1.y, cx, cy);
+      p1 = p2;
     }
+
+    ctx.lineTo(p1.x, p1.y);
     ctx.stroke();
   }
 
@@ -67,7 +77,7 @@
     for (const uid in otherCursors) {
       const c = otherCursors[uid];
       const px = { x: c.x * overlay.width, y: c.y * overlay.height };
-      
+
       octx.fillStyle = c.color || "#333";
       octx.beginPath();
       octx.arc(px.x, px.y, 6, 0, Math.PI * 2);
@@ -124,9 +134,14 @@
 
     if (drawing) {
       const op = ops[ops.length - 1];
-      op.points.push(toNorm(x, y));
-      drawPoints(op);
-      window.socket.emit('stroke.data', { opId: op.opId, points: [toNorm(x, y)] });
+      const norm = toNorm(x, y);
+
+      const last = op.points[op.points.length - 1];
+      if (!last || Math.abs(last[0] - norm[0]) > 0.001 || Math.abs(last[1] - norm[1]) > 0.001) {
+        op.points.push(norm);
+        redraw();
+        window.socket.emit('stroke.data', { opId: op.opId, points: [norm] });
+      }
     }
   });
 
@@ -152,7 +167,7 @@
     const op = ops.find(o => o.opId === data.opId);
     if (op) {
       op.points.push(...data.points);
-      drawPoints(op);
+      redraw();
     }
   });
 
@@ -183,7 +198,7 @@
       const el = document.createElement('div');
       el.className = 'user-badge';
 
-      let initials = (u.name.includes('-') ? u.name.split('-')[1] : u.userId)
+      const initials = (u.name.includes('-') ? u.name.split('-')[1] : u.userId)
         .slice(0, 2)
         .toUpperCase();
 
