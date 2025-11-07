@@ -98,10 +98,40 @@
     }
   }
 
+  function getTouchPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+  }
+
   let lastCursorSent = 0;
   const CURSOR_INTERVAL = 30;
 
   canvas.addEventListener('mousedown', () => {
+    startStroke();
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    continueStroke(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('mouseup', endStroke);
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const { x, y } = getTouchPos(e);
+    startStroke(x, y);
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const { x, y } = getTouchPos(e);
+    continueStroke(x, y);
+  });
+
+  window.addEventListener('touchend', endStroke);
+
+  function startStroke(x, y) {
     drawing = true;
     const opId = Math.random().toString(36).slice(2);
     const op = {
@@ -109,16 +139,14 @@
       tool: toolSelect.value,
       color: colorInput.value,
       width: parseInt(widthInput.value, 10),
-      points: []
+      points: x !== undefined ? [toNorm(x, y)] : []
     };
     ops.push(op);
     window.socket.emit('stroke.begin', op);
-  });
+  }
 
-  canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  function continueStroke(x, y) {
+    if (x === undefined || y === undefined) return;
 
     const now = performance.now();
     if (now - lastCursorSent >= CURSOR_INTERVAL) {
@@ -135,26 +163,28 @@
     if (drawing) {
       const op = ops[ops.length - 1];
       const norm = toNorm(x, y);
-
       const last = op.points[op.points.length - 1];
+
       if (!last || Math.abs(last[0] - norm[0]) > 0.001 || Math.abs(last[1] - norm[1]) > 0.001) {
         op.points.push(norm);
         redraw();
         window.socket.emit('stroke.data', { opId: op.opId, points: [norm] });
       }
     }
-  });
+  }
 
-  window.addEventListener('mouseup', () => {
+  function endStroke() {
     if (!drawing) return;
     drawing = false;
     const op = ops[ops.length - 1];
     window.socket.emit('stroke.end', { opId: op.opId });
-  });
+  }
 
+  // Undo / Redo
   undoBtn.addEventListener('click', () => window.socket.emit('undo'));
   redoBtn.addEventListener('click', () => window.socket.emit('redo'));
 
+  // Socket event syncing
   window.socket.on('init', (data) => {
     ops = data.ops || [];
     me = data.user;
@@ -165,10 +195,8 @@
   window.socket.on('stroke.begin', (op) => ops.push({ ...op, points: [] }));
   window.socket.on('stroke.data', (data) => {
     const op = ops.find(o => o.opId === data.opId);
-    if (op) {
-      op.points.push(...data.points);
-      redraw();
-    }
+    if (op) op.points.push(...data.points);
+    redraw();
   });
 
   window.socket.on('op.remove', ({ opId }) => {
@@ -197,11 +225,9 @@
     (userList || []).forEach((u) => {
       const el = document.createElement('div');
       el.className = 'user-badge';
-
       const initials = (u.name.includes('-') ? u.name.split('-')[1] : u.userId)
         .slice(0, 2)
         .toUpperCase();
-
       el.textContent = initials;
       el.style.background = u.color;
       usersDiv.appendChild(el);

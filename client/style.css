@@ -3,6 +3,7 @@ body, html {
   height: 100%;
   overflow: hidden;
   font-family: sans-serif;
+  touch-action: none; 
 }
 
 #toolbar {
@@ -60,3 +61,4 @@ body, html {
   pointer-events: none;
   z-index: 10;
 }
+
