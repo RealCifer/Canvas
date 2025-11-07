@@ -48,23 +48,25 @@ This project demonstrates:
 
 ## Project Structure
 
+```
 collaborative-canvas/
 ├── client/
-│ ├── index.html # UI layout
-│ ├── style.css # Styling
-│ ├── canvas.js # Drawing + rendering logic
-│ ├── websocket.js # Client WebSocket connection
-│ └── main.js # Client initialization
+│   ├── index.html         
+│   ├── style.css           
+│   ├── canvas.js           
+│   ├── websocket.js       
+│   └── main.js             
+│
 ├── server/
-│ ├── server.js # Express + Socket.io server
-│ ├── rooms.js # Room / user session management
-│ └── drawing-state.js # Shared stroke state & undo/redo logic
+│   ├── server.js          
+│   ├── rooms.js           
+│   └── drawing-state.js   
+│
 ├── package.json
 ├── README.md
-└── ARCHITECTURE.md 
+└── ARCHITECTURE.md
+```
 
-
----
 
 ## Setup Instructions
 
