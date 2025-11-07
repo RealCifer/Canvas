@@ -74,25 +74,56 @@ collaborative-canvas/
 ```bash
 git clone https://github.com/RealCifer/Canvas.git
 cd Canvas
+```
 
+### 2. Install dependencies
+```bash
 npm install
+```
 
+### 3. Start the server
+```bash
 npm start
+```
 
+Server will run at:
+```
 http://localhost:3000
+```
 
-Testing Multi-User Collaboration
+---
+
+## Testing Multi-User Collaboration
 
 To view collaboration in action:
 
-Open http://localhost:3000 in two different browsers 
-Open one instance in your laptop, and one in your phone 
-Both users will see each other's drawing strokes and cursor movements in real time.
+1. Open the project in **two different browsers**  
+   Example:
+   - One on your **laptop**
+   - One on your **phone**
 
-Undo / Redo Logic
-Every stroke is stored as an operation (ops[])
-Undo removes the most recent stroke and moves it into redoStack[]
-Redo restores the most recently undone stroke
-State remains synchronized across all active users
+2. Visit:
+```
+http://localhost:3000
+```
 
-Developed by Aditya Khamait
+3. Both users will now see:
+- Each other's drawing strokes in **real-time**
+- Live **cursor indicators**
+- Brush / Eraser actions synchronized instantly
+
+---
+
+## Undo / Redo Logic Explanation
+
+| Action | What Happens | Where It Is Stored |
+|-------|--------------|-------------------|
+| Stroke Drawn | Stroke is added to history | `ops[]` (main history array) |
+| Undo | Removes latest stroke and saves it | `redoStack[]` |
+| Redo | Restores the most recently undone stroke | Moves from `redoStack[]` back → `ops[]` |
+
+**Canvas state stays synchronized for all active users.**
+
+---
+
+**Developed by:** Aditya Khamait
