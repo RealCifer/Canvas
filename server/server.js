@@ -14,7 +14,6 @@ function load() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
     ops = JSON.parse(raw) || [];
-    console.log('Loaded previous strokes:', ops.length);
   } catch {
     ops = [];
   }
@@ -22,11 +21,7 @@ function load() {
 load();
 
 function persist() {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(ops, null, 2));
-  } catch (e) {
-    console.error('Error saving data', e);
-  }
+  fs.writeFileSync(DATA_FILE, JSON.stringify(ops, null, 2));
 }
 setInterval(persist, 5000);
 
@@ -56,14 +51,9 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('stroke.data', data);
   });
 
-  socket.on('stroke.end', (op) => {
-    persist();
-    socket.broadcast.emit('stroke.end', op);
-  });
+  socket.on('stroke.end', () => persist());
 
-  socket.on('cursor', (data) => {
-    socket.broadcast.emit('cursor', data);
-  });
+  socket.on('cursor', (data) => socket.broadcast.emit('cursor', data));
 
   socket.on('undo', () => {
     const last = ops.pop();
@@ -87,5 +77,4 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = 3000;
-server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+server.listen(3000, () => console.log("Server running on http://localhost:3000"));
