@@ -10,7 +10,8 @@ body, html {
   padding: 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  border-bottom: 1px solid #ddd;
 }
 
 #canvas {
@@ -23,19 +24,36 @@ body, html {
 
 #users {
   margin-left: auto;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .user-badge {
-  margin-left: 8px;
-  padding: 4px 6px;
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
   color: white;
+  cursor: default;
+  letter-spacing: 0.5px;
+
+  box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.user-badge:hover {
+  transform: scale(1.18);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
 }
 
 #cursor-layer {
   position: fixed;
-  top: 60px;
+  top: 60px; 
   left: 0;
   width: 100%;
   height: calc(100vh - 60px);
