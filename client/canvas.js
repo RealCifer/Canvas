@@ -17,13 +17,12 @@
   const overlay = document.getElementById("cursor-layer");
   const octx = overlay.getContext("2d");
 
-  let currentTool = "brush"; // ✅ single source of truth for tool
+  let currentTool = "brush";
   let drawing = false;
   let ops = [];
   let me = null;
   const otherCursors = {};
 
-  // ---------- RESIZE ----------
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - toolbar.offsetHeight;
@@ -41,7 +40,6 @@
   const toNorm = (x, y) => [x / canvas.width, y / canvas.height];
   const toPx = ([nx, ny]) => ({ x: nx * canvas.width, y: ny * canvas.height });
 
-  // ---------- DRAW STROKES ----------
   function drawPoints(op) {
     if (op.points.length < 2) return;
 
@@ -72,7 +70,6 @@
     ops.forEach(drawPoints);
   }
 
-  // ---------- CURSOR DRAW ----------
   function drawCursors() {
     octx.clearRect(0, 0, overlay.width, overlay.height);
 
@@ -97,7 +94,6 @@
     });
   }
 
-  // ---------- STROKE START / MOVE / END ----------
   function beginStroke(x, y) {
     drawing = true;
     const op = {
@@ -149,7 +145,6 @@
     }
   }
 
-  // ---------- MOUSE + TOUCH ----------
   canvas.addEventListener("mousedown", e => beginStroke(e.offsetX, e.offsetY));
   canvas.addEventListener("mousemove", e => addPoint(e.offsetX, e.offsetY));
   window.addEventListener("mouseup", endStroke);
@@ -168,7 +163,6 @@
 
   window.addEventListener("touchend", endStroke, { passive: false });
 
-  // ---------- TOOL BUTTONS ----------
   brushBtn.onclick = () => {
     currentTool = "brush";
     brushBtn.classList.add("active");
@@ -181,11 +175,9 @@
     brushBtn.classList.remove("active");
   };
 
-  // ---------- UNDO / REDO ----------
   undoBtn.onclick = () => window.socket.emit("undo");
   redoBtn.onclick = () => window.socket.emit("redo");
 
-  // ---------- SOCKET SYNC ----------
   window.socket.on("init", data => {
     ops = data.ops;
     me = data.user;
