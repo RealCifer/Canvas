@@ -8,39 +8,48 @@
 </head>
 <body>
 
-  <div id="toolbar">
-    
-    <label>
-      Tool:
-      <select id="tool" aria-label="Select Drawing Tool">
-        <option value="brush">Brush</option>
-        <option value="eraser">Eraser</option>
-      </select>
-    </label>
+<div id="toolbar">
 
-    <label>
-      Color:
-      <input id="color" type="color" value="#000000" aria-label="Select Brush Color" />
-    </label>
+  <button class="tool-btn active" data-tool="brush" id="brush-btn" 
+          aria-label="Brush Tool" title="Brush Tool">
+    <svg viewBox="0 0 24 24"><path d="M3 17c0 2 2 4 4 4s4-2 4-4l8-8c1-1 1-3 0-4s-3-1-4 0l-8 8c-2 0-4 2-4 4z"/></svg>
+  </button>
 
-    <label>
-      Width:
-      <input id="width" type="range" min="1" max="40" value="4" aria-label="Brush Size" />
-    </label>
+  <button class="tool-btn" data-tool="eraser" id="eraser-btn"
+          aria-label="Eraser Tool" title="Eraser Tool">
+    <svg viewBox="0 0 24 24"><path d="M3 16l6 6h6l6-6-12-12-6 6z"/></svg>
+  </button>
 
-    <button id="undo" aria-label="Undo Last Stroke">Undo</button>
-    <button id="redo" aria-label="Redo Last Stroke">Redo</button>
+  <input type="color" id="color" value="#000000" title="Stroke Color" aria-label="Pick stroke color"/>
 
-    <div id="users"></div>
-  </div>
+  <input type="range" id="width" min="1" max="40" value="4"
+         title="Brush Size" aria-label="Brush Size"/>
 
-  <canvas id="canvas"></canvas>
-  <canvas id="cursor-layer"></canvas>
+  <button class="action-btn" id="undo" aria-label="Undo" title="Undo">
+    <svg viewBox="0 0 24 24"><path d="M12 5v4H8l6 6 6-6h-4V5z"/></svg>
+  </button>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="main.js"></script>
-  <script src="websocket.js"></script>
-  <script src="canvas.js"></script>
+  <button class="action-btn" id="redo" aria-label="Redo" title="Redo">
+    <svg viewBox="0 0 24 24"><path d="M12 5v4h4l-6 6-6-6h4V5z"/></svg>
+  </button>
+
+  <button class="action-btn" id="theme-toggle" aria-label="Toggle Theme" title="Toggle Light/Dark Mode">
+    <svg id="theme-icon" viewBox="0 0 24 24">
+      <path d="M12 3a9 9 0 000 18c4.97 0 9-4.03 9-9a9 9 0 00-9-9z"/>
+    </svg>
+  </button>
+
+  <div id="users"></div>
+
+</div>
+
+<canvas id="canvas"></canvas>
+<canvas id="cursor-layer"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="main.js"></script>
+<script src="websocket.js"></script>
+<script src="canvas.js"></script>
 
 </body>
 </html>

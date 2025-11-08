@@ -1,22 +1,29 @@
 (function () {
+
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
-  const toolSelect = document.getElementById("tool");
+
   const colorInput = document.getElementById("color");
   const widthInput = document.getElementById("width");
   const undoBtn = document.getElementById("undo");
   const redoBtn = document.getElementById("redo");
   const usersDiv = document.getElementById("users");
   const toolbar = document.getElementById("toolbar");
+  const themeToggle = document.getElementById("theme-toggle");
+
+  const brushBtn = document.getElementById("brush-btn");
+  const eraserBtn = document.getElementById("eraser-btn");
 
   const overlay = document.getElementById("cursor-layer");
   const octx = overlay.getContext("2d");
 
+  let currentTool = "brush"; // ✅ single source of truth for tool
   let drawing = false;
   let ops = [];
   let me = null;
   const otherCursors = {};
 
+  // ---------- RESIZE ----------
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - toolbar.offsetHeight;
@@ -34,13 +41,14 @@
   const toNorm = (x, y) => [x / canvas.width, y / canvas.height];
   const toPx = ([nx, ny]) => ({ x: nx * canvas.width, y: ny * canvas.height });
 
+  // ---------- DRAW STROKES ----------
   function drawPoints(op) {
     if (op.points.length < 2) return;
+
     ctx.lineWidth = op.width;
     ctx.lineCap = "round";
     ctx.strokeStyle = op.color;
-    ctx.globalCompositeOperation =
-      op.tool === "eraser" ? "destination-out" : "source-over";
+    ctx.globalCompositeOperation = op.tool === "eraser" ? "destination-out" : "source-over";
 
     ctx.beginPath();
     let p0 = toPx(op.points[0]);
@@ -61,14 +69,14 @@
 
   function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const op of ops) drawPoints(op);
+    ops.forEach(drawPoints);
   }
 
+  // ---------- CURSOR DRAW ----------
   function drawCursors() {
     octx.clearRect(0, 0, overlay.width, overlay.height);
 
-    for (const uid in otherCursors) {
-      const c = otherCursors[uid];
+    Object.values(otherCursors).forEach(c => {
       const p = { x: c.x * overlay.width, y: c.y * overlay.height };
 
       octx.beginPath();
@@ -79,24 +87,22 @@
       const label = (c.name || "USER").slice(-4).toUpperCase();
       octx.font = "12px sans-serif";
       const padding = 6;
-      const tw = octx.measureText(label).width;
-
-      const bx = p.x + 12;
-      const by = p.y - 22;
+      const w = octx.measureText(label).width;
 
       octx.fillStyle = "rgba(0,0,0,0.65)";
-      octx.fillRect(bx, by, tw + padding * 2, 18);
+      octx.fillRect(p.x + 12, p.y - 22, w + padding * 2, 18);
 
       octx.fillStyle = "white";
-      octx.fillText(label, bx + padding, by + 13);
-    }
+      octx.fillText(label, p.x + 12 + padding, p.y - 10);
+    });
   }
 
+  // ---------- STROKE START / MOVE / END ----------
   function beginStroke(x, y) {
     drawing = true;
     const op = {
       opId: Math.random().toString(36).slice(2),
-      tool: toolSelect.value,
+      tool: currentTool,
       color: colorInput.value,
       width: +widthInput.value,
       points: [[x / canvas.width, y / canvas.height]]
@@ -137,10 +143,13 @@
 
   function endStroke() {
     drawing = false;
-    const op = ops[ops.length - 1];
-    window.socket.emit("stroke.end", { opId: op.opId });
+    if (ops.length) {
+      const op = ops[ops.length - 1];
+      window.socket.emit("stroke.end", { opId: op.opId });
+    }
   }
 
+  // ---------- MOUSE + TOUCH ----------
   canvas.addEventListener("mousedown", e => beginStroke(e.offsetX, e.offsetY));
   canvas.addEventListener("mousemove", e => addPoint(e.offsetX, e.offsetY));
   window.addEventListener("mouseup", endStroke);
@@ -159,9 +168,24 @@
 
   window.addEventListener("touchend", endStroke, { passive: false });
 
+  // ---------- TOOL BUTTONS ----------
+  brushBtn.onclick = () => {
+    currentTool = "brush";
+    brushBtn.classList.add("active");
+    eraserBtn.classList.remove("active");
+  };
+
+  eraserBtn.onclick = () => {
+    currentTool = "eraser";
+    eraserBtn.classList.add("active");
+    brushBtn.classList.remove("active");
+  };
+
+  // ---------- UNDO / REDO ----------
   undoBtn.onclick = () => window.socket.emit("undo");
   redoBtn.onclick = () => window.socket.emit("redo");
 
+  // ---------- SOCKET SYNC ----------
   window.socket.on("init", data => {
     ops = data.ops;
     me = data.user;
@@ -181,8 +205,9 @@
   window.socket.on("stroke.data", data => {
     const op = ops.find(o => o.opId === data.opId);
     if (op) op.points.push(...data.points);
-    drawPoints(ops[ops.length - 1]);
+    drawPoints(op);
   });
+
   window.socket.on("op.remove", ({ opId }) => { ops = ops.filter(o => o.opId !== opId); redraw(); });
   window.socket.on("op.restore", ({ op }) => { ops.push(op); redraw(); });
 
@@ -196,4 +221,14 @@
     delete otherCursors[user.userId];
     drawCursors();
   });
+
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    themeToggle.textContent = document.body.classList.contains("dark")
+      ? "☀️ Light"
+      : "🌙 Dark";
+    redraw();
+    drawCursors();
+  });
+
 })();

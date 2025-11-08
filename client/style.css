@@ -1,10 +1,33 @@
+:root {
+  --bg: #f8fafc;
+  --toolbar-bg: rgba(255, 255, 255, 0.75);
+  --text: #1e293b;
+  --hover: #e2e8f0;
+  --border: rgba(0, 0, 0, 0.08);
+
+  --btn-active-bg: #3b82f6;
+  --btn-active-icon: #ffffff;
+}
+
+.dark {
+  --bg: #0f1117;
+  --toolbar-bg: rgba(25, 27, 35, 0.72);
+  --text: #e5eaf5;
+  --hover: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.12);
+
+  --btn-active-bg: #6366f1;
+  --btn-active-icon: #ffffff;
+}
+
 body, html {
   margin: 0;
   height: 100%;
   overflow: hidden;
   font-family: "Inter", sans-serif;
-  touch-action: none; 
-  background: #f8fafc;
+  touch-action: none;
+  background: var(--bg);
+  color: var(--text);
 }
 
 #toolbar {
@@ -14,13 +37,15 @@ body, html {
   height: 58px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 14px;
-  background: rgba(255, 255, 255, 0.75);
+  padding: 0 14px;
+  gap: 12px;
+
+  background: var(--toolbar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
   z-index: 20;
 }
 
@@ -30,36 +55,42 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 8px;
   border: none;
-  background: #ffffffaa;
+  background: transparent;
   cursor: pointer;
-  transition: 0.25s ease;
   padding: 0;
+  transition: 0.25s ease;
 }
 
 .tool-btn svg, .action-btn svg {
   width: 22px;
   height: 22px;
-  fill: #334155;
+  fill: var(--text);
+  pointer-events: none;
 }
 
 .tool-btn.active {
-  background: #3b82f6;
+  background: var(--btn-active-bg);
 }
-.tool-btn.active svg { fill: white; }
+.tool-btn.active svg {
+  fill: var(--btn-active-icon);
+}
 
 .tool-btn:hover, .action-btn:hover {
-  background: #e2e8f0;
+  background: var(--hover);
 }
 
 #color, #width {
   cursor: pointer;
+  border-radius: 6px;
 }
 
 #users {
   margin-left: auto;
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
@@ -74,6 +105,7 @@ body, html {
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
+
   box-shadow: 0 3px 6px rgba(0,0,0,0.22);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -89,9 +121,9 @@ body, html {
   left: 0;
   width: 100%;
   height: calc(100vh - 58px);
-  background: #ffffff;
+  background: var(--bg);
+  cursor: crosshair;
 }
-
 #cursor-layer {
   position: fixed;
   top: 58px;
