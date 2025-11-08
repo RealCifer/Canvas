@@ -126,4 +126,6 @@ http://localhost:3000
 
 ---
 
+Deployed link - https://canvas-ce4q.onrender.com
+
 **Developed by:** Aditya Khamait
