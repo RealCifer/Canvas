@@ -2,25 +2,63 @@ body, html {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  font-family: sans-serif;
+  font-family: "Inter", sans-serif;
   touch-action: none; 
+  background: #f8fafc;
 }
 
 #toolbar {
-  background: #f2f2f2;
-  padding: 10px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 58px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid #ddd;
+  padding: 0 16px;
+  gap: 14px;
+
+  background: rgba(255, 255, 255, 0.75);
+
+  backdrop-filter: blur(12px);
+
+  -webkit-backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  z-index: 20;
 }
 
-#canvas {
-  border: 1px solid #ddd;
-  display: block;
-  width: 100%;
-  height: calc(100vh - 60px);
-  cursor: crosshair;
+#toolbar select,
+#toolbar input[type="color"],
+#toolbar input[type="range"] {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  background: white;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+#toolbar select:hover,
+#toolbar input[type="color"]:hover,
+#toolbar input[type="range"]:hover {
+  border-color: #3b82f6;
+}
+
+#toolbar button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+#toolbar button:hover {
+  background: #2563eb;
 }
 
 #users {
@@ -34,31 +72,39 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
   color: white;
   cursor: default;
-  letter-spacing: 0.5px;
-
-  box-shadow: 0 3px 6px rgba(0,0,0,0.25);
-  transition: transform 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .user-badge:hover {
   transform: scale(1.18);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.35);
 }
 
-#cursor-layer {
-  position: fixed;
-  top: 60px; 
+#canvas {
+  position: absolute;
+  top: 58px;
   left: 0;
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 58px);
+  display: block;
+  cursor: crosshair;
+  background: white;
+}
+#cursor-layer {
+  position: fixed;
+  top: 58px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 58px);
   pointer-events: none;
   z-index: 10;
 }
-
