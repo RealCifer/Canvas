@@ -1,18 +1,16 @@
 (function () {
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  const toolSelect = document.getElementById('tool');
-  const colorInput = document.getElementById('color');
-  const widthInput = document.getElementById('width');
-  const undoBtn = document.getElementById('undo');
-  const redoBtn = document.getElementById('redo');
-  const usersDiv = document.getElementById('users');
-  const toolbar = document.getElementById('toolbar');
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const toolSelect = document.getElementById("tool");
+  const colorInput = document.getElementById("color");
+  const widthInput = document.getElementById("width");
+  const undoBtn = document.getElementById("undo");
+  const redoBtn = document.getElementById("redo");
+  const usersDiv = document.getElementById("users");
+  const toolbar = document.getElementById("toolbar");
 
-  const overlay = document.createElement('canvas');
-  overlay.id = "cursor-layer";
-  const octx = overlay.getContext('2d');
-  document.body.appendChild(overlay);
+  const overlay = document.getElementById("cursor-layer");
+  const octx = overlay.getContext("2d");
 
   let drawing = false;
   let ops = [];
@@ -30,7 +28,7 @@
     redraw();
     drawCursors();
   }
-  window.addEventListener('resize', resize);
+  window.addEventListener("resize", resize);
   resize();
 
   const toNorm = (x, y) => [x / canvas.width, y / canvas.height];
@@ -38,11 +36,11 @@
 
   function drawPoints(op) {
     if (op.points.length < 2) return;
-
     ctx.lineWidth = op.width;
-    ctx.lineCap = 'round';
+    ctx.lineCap = "round";
     ctx.strokeStyle = op.color;
-    ctx.globalCompositeOperation = op.tool === 'eraser' ? 'destination-out' : 'source-over';
+    ctx.globalCompositeOperation =
+      op.tool === "eraser" ? "destination-out" : "source-over";
 
     ctx.beginPath();
     let p0 = toPx(op.points[0]);
@@ -69,30 +67,28 @@
   function drawCursors() {
     octx.clearRect(0, 0, overlay.width, overlay.height);
 
-    for (const id in otherCursors) {
-      const c = otherCursors[id];
-      const px = { x: c.x * overlay.width, y: c.y * overlay.height };
+    for (const uid in otherCursors) {
+      const c = otherCursors[uid];
+      const p = { x: c.x * overlay.width, y: c.y * overlay.height };
 
       octx.beginPath();
       octx.fillStyle = c.color;
-      octx.arc(px.x, px.y, 7, 0, Math.PI * 2);
+      octx.arc(p.x, p.y, 7, 0, Math.PI * 2);
       octx.fill();
 
-      const label = (c.name || "??").slice(-4).toUpperCase();
+      const label = (c.name || "USER").slice(-4).toUpperCase();
       octx.font = "12px sans-serif";
       const padding = 6;
-      const textWidth = octx.measureText(label).width;
+      const tw = octx.measureText(label).width;
 
-      const boxX = px.x + 12;
-      const boxY = px.y - 22;
-      const boxW = textWidth + padding * 2;
-      const boxH = 18;
+      const bx = p.x + 12;
+      const by = p.y - 22;
 
       octx.fillStyle = "rgba(0,0,0,0.65)";
-      octx.fillRect(boxX, boxY, boxW, boxH);
+      octx.fillRect(bx, by, tw + padding * 2, 18);
 
       octx.fillStyle = "white";
-      octx.fillText(label, boxX + padding, boxY + 13);
+      octx.fillText(label, bx + padding, by + 13);
     }
   }
 
@@ -102,24 +98,30 @@
       opId: Math.random().toString(36).slice(2),
       tool: toolSelect.value,
       color: colorInput.value,
-      width: parseInt(widthInput.value, 10),
+      width: +widthInput.value,
       points: [[x / canvas.width, y / canvas.height]]
     };
     ops.push(op);
     window.socket.emit("stroke.begin", op);
   }
 
-  function addPoint(x, y) {
+  let lastSent = 0;
+  function sendCursor(x, y) {
     const now = performance.now();
+    if (now - lastSent > 25) {
+      window.socket.emit("cursor", {
+        x: x / canvas.width,
+        y: y / canvas.height,
+        userId: me?.userId,
+        color: me?.color,
+        name: me?.name
+      });
+      lastSent = now;
+    }
+  }
 
-    window.socket.emit('cursor', {
-      x: x / canvas.width,
-      y: y / canvas.height,
-      userId: me?.userId,
-      color: me?.color,
-      name: me?.name
-    });
-
+  function addPoint(x, y) {
+    sendCursor(x, y);
     if (!drawing) return;
 
     const op = ops[ops.length - 1];
@@ -128,7 +130,7 @@
 
     if (!last || Math.abs(last[0] - norm[0]) > 0.001 || Math.abs(last[1] - norm[1]) > 0.001) {
       op.points.push(norm);
-      redraw();
+      drawPoints(op);
       window.socket.emit("stroke.data", { opId: op.opId, points: [norm] });
     }
   }
@@ -165,7 +167,7 @@
     me = data.user;
     redraw();
 
-    usersDiv.innerHTML = '';
+    usersDiv.innerHTML = "";
     data.users.forEach(u => {
       const badge = document.createElement("div");
       badge.className = "user-badge";
@@ -179,7 +181,7 @@
   window.socket.on("stroke.data", data => {
     const op = ops.find(o => o.opId === data.opId);
     if (op) op.points.push(...data.points);
-    redraw();
+    drawPoints(ops[ops.length - 1]);
   });
   window.socket.on("op.remove", ({ opId }) => { ops = ops.filter(o => o.opId !== opId); redraw(); });
   window.socket.on("op.restore", ({ op }) => { ops.push(op); redraw(); });
@@ -194,5 +196,4 @@
     delete otherCursors[user.userId];
     drawCursors();
   });
-
 })();

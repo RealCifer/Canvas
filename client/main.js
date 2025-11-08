@@ -9,15 +9,10 @@
 
   window.__ROOM_ID__ = roomId;
 
-  console.log(`🧩 Room: ${roomId}`);
   const toolbar = document.getElementById('toolbar');
-  if (toolbar) {
-    const link = document.createElement('a');
-    link.href = location.href;
-    link.textContent = `Invite: ${location.href}`;
-    link.style.marginLeft = '8px';
-    link.style.fontSize = '12px';
-    link.style.opacity = '0.8';
-    toolbar.appendChild(link);
-  }
+  const link = document.createElement('span');
+  link.textContent = `Invite: ${location.href}`;
+  link.style.fontSize = "12px";
+  link.style.opacity = "0.7";
+  toolbar.appendChild(link);
 })();
